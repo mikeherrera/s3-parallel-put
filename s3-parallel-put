@@ -45,6 +45,7 @@ import urllib2
 import ast
 
 import boto
+import boto.sts
 from boto.s3.connection import S3Connection
 from boto.s3.acl import CannedACLStrings
 from boto.utils import compute_md5

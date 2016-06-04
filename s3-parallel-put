@@ -350,7 +350,7 @@ def main(argv):
     parser.add_option_group(group)
     group = OptionGroup(parser, 'Assume Role Options')
     group.add_option('--assume-role-arn', action='store', type='string', dest='role_to_assume')
-    parser.add_option_gropu(group)
+    parser.add_option_group(group)
     group = OptionGroup(parser, 'Source options')
     group.add_option('--walk', choices=('filesystem', 'tar', 's3'), default='filesystem', metavar='MODE',
             help='set walk mode (filesystem or tar)')

@@ -414,7 +414,7 @@ def main(argv):
         return 1
     if not options.bucket_region:
         options.bucket_region = 'us-east-1'
-    if options.role_to_assume
+    if options.role_to_assume:
       metadata_response = urllib2.urlopen('http://169.254.169.254/latest/meta-data/iam/info').read()
       metadata_response = ast.literal_eval(metadata_response)
       role_name = metadata_response['InstanceProfileArn'].split('/')[1]

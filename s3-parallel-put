@@ -41,6 +41,8 @@ import time
 import mimetypes
 import stat
 import json
+import urllib2
+import ast
 
 import boto
 from boto.s3.connection import S3Connection
@@ -346,6 +348,9 @@ def main(argv):
     group.add_option('--secure', action='store_true', default=True, dest='secure',
             help='use secure connection')
     parser.add_option_group(group)
+    group = OptionGroup(parser, 'Assume Role Options')
+    group.add_option('--assume-role-arn', action='store', type='string', dest='role_to_assume')
+    parser.add_option_gropu(group)
     group = OptionGroup(parser, 'Source options')
     group.add_option('--walk', choices=('filesystem', 'tar', 's3'), default='filesystem', metavar='MODE',
             help='set walk mode (filesystem or tar)')
@@ -409,9 +414,32 @@ def main(argv):
         return 1
     if not options.bucket_region:
         options.bucket_region = 'us-east-1'
+    if options.role_to_assume
+      metadata_response = urllib2.urlopen('http://169.254.169.254/latest/meta-data/iam/info').read()
+      metadata_response = ast.literal_eval(metadata_response)
+      role_name = metadata_response['InstanceProfileArn'].split('/')[1]
+      metadata_response = urllib2.urlopen('http://169.254.169.254/latest/meta-data/iam/security-credentials/' + role_name).read()
+      metadata_response = ast.literal_eval(metadata_response)
+      aws_access_key_id_tmp = metadata_response['AccessKeyId']
+      aws_secret_access_key_tmp = metadata_response['SecretAccessKey']
+      aws_security_token_tmp = metadata_response['Token']
+      sts_connection = boto.sts.connect_to_region('us-west-2', 
+        aws_access_key_id=aws_access_key_id_tmp, 
+        aws_secret_access_key=aws_secret_access_key_tmp, 
+        security_token=aws_security_token_tmp, 
+        is_secure=True
+      )
+      assumed_role = sts_connection.assume_role(
+        role_arn=options.role_to_assume, 
+        role_session_name='NGUX'
+      )
+      # Overwrite/set AWS Credentials Environment Variables 
+      os.environ['AWS_ACCESS_KEY_ID'] = assumed_role.credentials.access_key
+      os.environ['AWS_SECRET_ACCESS_KEY'] = assumed_role.credentials.secret_key
+      os.environ['AWS_SESSION_TOKEN'] = assumed_role.credentials.session_token
     connection = boto.s3.connect_to_region(options.bucket_region,
-       aws_access_key_id=os.environ.get('AWS_ACCESS_KEY_ID'),
-       aws_secret_access_key=os.environ.get('AWS_SECRET_ACCESS_KEY'),
+       #aws_access_key_id=os.environ.get('AWS_ACCESS_KEY_ID'),
+       #aws_secret_access_key=os.environ.get('AWS_SECRET_ACCESS_KEY'),
        is_secure=True,
        calling_format = boto.s3.connection.OrdinaryCallingFormat(),
        )
